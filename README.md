@@ -15,10 +15,8 @@ Your Express project will be ready within 1 minute of installing. You will have 
 - View engine of your choice when initializing project
 
 ## Table of Contents
-- [express-generate](#express-generate)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Usage](#usage)
+- [Installation](#installation)
+- [Usage](#usage)
 
 ## Installation
 Install CLI
@@ -36,6 +34,6 @@ Commands:
   express-generate generate model <field-name>:<data-type>               Create a new model with the predefined fields
   express-generate db:migrate                                            Running migrations for database
 Options:
-  --version  Show version number                                         [boolean]
-  --help     Show help                                                   [boolean]
+  --version  Show version number                                         
+  --help     Show help                                                   
 ```
