@@ -1,6 +1,7 @@
 var program = require("commander"),
   shell = require("shelljs"),
-  fs = require("fs");
+  fs = require("fs"),
+  inquirer = require("inquirer");
 
 import defaultControllerTemplate from "raw-loader!./lib/controllers/DefaultController.js";
 import defaultAppTemplate from "raw-loader!./lib/DefaultApp.js";
@@ -17,53 +18,80 @@ import RoutesTemplate from "raw-loader!./lib/routes/RoutesTemplate.js";
 const CONTROLLERS_DIR = "controllers",
   CONFIG_DIR = "config",
   ROUTES_DIR = "routes",
-  MODELS_DIR = "models",
-  SEQUELIZE_CLI = "node_modules\/.bin\/sequelize";
+  SEQUELIZE_CLI = "sequelize";
 
-shell.config.silent = true;
+shell.config.silent = false;
 
 program.command("new <name>").action(name => {
-  console.log("Checking for package.json .... ");
-  shell.exec("npm init -y");
-  shell.exec("npm install express-generator -g --save");
-  shell.exec("express --force --view=ejs " + name);
-  shell.cd(name);
-  shell.exec("npm install");
-  shell.exec("npm install sqlite3 --save");
-  shell.exec("npm install sequelize --save");
-  shell.exec("npm install sequelize-cli --save");
-  shell.exec(SEQUELIZE_CLI + " init");
-  
-  fs.writeFileSync("./app.js", defaultAppTemplate, err => {
-    shell.echo(err);
-  });
-  
-  // shell.mkdir(CONFIG_DIR);
-  shell.mkdir(CONTROLLERS_DIR);
-  shell.mkdir(MODELS_DIR);
+  console.log("Installing express-generator ...");
+  shell.exec("npm install express-generator -g");
+  console.log("Creating express project ...");
 
-  shell.cd(CONFIG_DIR);
-  fs.writeFileSync("./config.json", defaultDatabaseConfig);
-  shell.touch("error.js");
-  shell.touch("routes.js");
-  shell.touch("utilities.js");
-  shell.touch("view.js");
-  shell.touch("config.json");
+  let viewEngine;
+
+  inquirer.prompt([{
+    type: 'list',
+    name: 'viewEngine',
+    message: 'Which view engine you want to use ?',
+    default : 'no-view',
+    choices: ['ejs', 'hbs', 'hjs', 'jade', 'pug', 'twig', 'vash']
+  }]).then(answers => {
+    viewEngine = answers.viewEngine;
+
+    shell.exec("express --force --view=" + viewEngine + " " + name);
+    
+    shell.cd(name);
+    shell.exec("npm install");
+    shell.exec("npm install sqlite3 --save");
+    shell.exec("npm install sequelize --save");
+    shell.exec("npm install sequelize-cli -g --save");
+    shell.exec(SEQUELIZE_CLI + " init");
+    
+    fs.writeFileSync("./app.js", defaultAppTemplate, err => {
+      shell.echo(err);
+    });
+    
+    shell.mkdir(CONTROLLERS_DIR);
+    
+    shell.cd(CONFIG_DIR);
+    fs.writeFileSync("./config.json", defaultDatabaseConfig);
+    shell.touch("error.js");
+    shell.touch("routes.js");
+    shell.touch("utilities.js");
+    shell.touch("view.js");
+    shell.touch("config.json");
+    
+    fs.writeFileSync("./error.js", defaultErrorConfig);
+    fs.writeFileSync("./routes.js", defaultRoutesConfig);
+    fs.writeFileSync("./utilities.js", defaultUtilitiesConfig);
+    fs.writeFileSync("./view.js",  defaultViewConfig.replace('{{!--view_engine--}}', viewEngine));
+    
+    shell.cd("..");
+    shell.cd(CONTROLLERS_DIR);
+    shell.touch("index.js");
+    fs.writeFileSync("./index.js", defaultControllerTemplate);
+    
+    shell.cd("../routes");
+    shell.rm("users.js");
+    fs.writeFileSync("./index.js", defaultRoutesTemplate);
+    // cssEngine = answers.cssEngine;
+    // return inquirer.prompt([{
+      //   type: 'list',
+      //   name: 'cssEngine',
+      //   message: 'Which css engine you want to use ? (Leave empty if you want to use plain css)',
+      //   default : '',
+      //   choices: ['less', 'stylus', 'compass', 'sass']
+      // }])
+    })
+    
   
-  fs.writeFileSync("./error.js", defaultErrorConfig);
-  fs.writeFileSync("./routes.js", defaultRoutesConfig);
-  fs.writeFileSync("./utilities.js", defaultUtilitiesConfig);
-  fs.writeFileSync("./view.js", defaultViewConfig);
-  
-  shell.cd("..");
-  shell.cd(CONTROLLERS_DIR);
-  shell.touch("index.js");
-  fs.writeFileSync("./index.js", defaultControllerTemplate);
-  
-  shell.cd("../routes");
-  shell.rm("users.js");
-  fs.writeFileSync("./index.js", defaultRoutesTemplate);
 });
+
+program.command("db:migrate")
+  .action(() => {
+    let command = SEQUELIZE_CLI + " db:migrate";
+    shell.exec(command);
+  })
 
 program
   .command("generate [tool] <toolName> [toolActions...]")
@@ -75,6 +103,7 @@ program
 
     switch (tool) {
       case "controller":
+        shell.config.silent = true;
         if(checkControllerExist(toolName)) {
           console.error("Error: Controller " + toolName + " already exists.");
           return;
@@ -82,6 +111,8 @@ program
         modifyControllerFolder(tool, toolName, toolActions);
         modifyRoutesFolder(tool, toolName, toolActions);
         modifyConfigFolder(tool, toolName, toolActions);
+        shell.config.silent = false;
+        break;
       case "model":
         let command = SEQUELIZE_CLI + " model:generate --name " + toolName + " --attributes ";
         toolActions.forEach((attribute, index, array) => {
@@ -91,8 +122,8 @@ program
           }
           command += (attribute + ",");
         })
-        console.log(command);
         shell.exec(command);
+        break;
     }
   });
 
@@ -111,11 +142,14 @@ function checkInsideProject() {
 
   shell.cd(CONFIG_DIR);
 
-  return checkRootValid &&
+  let isInsideProject = checkRootValid &&
   shell.test("-e", "error.js") &&
   shell.test("-e", "routes.js") &&
   shell.test("-e", "utilities.js") &&
   shell.test("-e", "view.js");
+
+  shell.cd("..");
+  return isInsideProject;
 }
 
 function checkControllerExist(toolName) {
@@ -242,23 +276,3 @@ function modifyControllerFolder(tool, toolName, toolActions) {
 }
 
 program.parse(process.argv);
-
-// Change to app.all();
-
-// var content;
-// // First I want to read the file
-// fs.readFile('src/lib/test.txt', function read(err, data) {
-//     if (err) {
-//         throw err;
-//     }
-//     content = data.toString();
-//     console.log(content);   // Put all of the code here (not the best solution)
-
-//     // Invoke the next step here however you like
-//     fs.writeFile('src/lib/test.txt', content + `\r\nconsole.log('This is a test')`, function(err) {
-//         if(err) {
-//             return console.log(err);
-//         }
-//         console.log("The file was saved!");
-//     })
-// });
