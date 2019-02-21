@@ -1,7 +1,8 @@
 var program = require("commander"),
   shell = require("shelljs"),
   fs = require("fs"),
-  inquirer = require("inquirer");
+  inquirer = require("inquirer"),
+  term = require("terminal-kit").terminal;
 
 import defaultControllerTemplate from "raw-loader!./lib/controllers/DefaultController.js";
 import defaultAppTemplate from "raw-loader!./lib/DefaultApp.js";
@@ -33,26 +34,26 @@ program.command("new <name>").action(name => {
     type: 'list',
     name: 'viewEngine',
     message: 'Which view engine you want to use ?',
-    default : 'no-view',
+    default: 'no-view',
     choices: ['ejs', 'hbs', 'hjs', 'jade', 'pug', 'twig', 'vash']
   }]).then(answers => {
     viewEngine = answers.viewEngine;
 
     shell.exec("express --force --view=" + viewEngine + " " + name);
-    
+
     shell.cd(name);
     shell.exec("npm install");
     shell.exec("npm install sqlite3 --save");
     shell.exec("npm install sequelize --save");
     shell.exec("npm install sequelize-cli -g --save");
     shell.exec(SEQUELIZE_CLI + " init");
-    
+
     fs.writeFileSync("./app.js", defaultAppTemplate, err => {
       shell.echo(err);
     });
-    
+
     shell.mkdir(CONTROLLERS_DIR);
-    
+
     shell.cd(CONFIG_DIR);
     fs.writeFileSync("./config.json", defaultDatabaseConfig);
     shell.touch("error.js");
@@ -60,43 +61,34 @@ program.command("new <name>").action(name => {
     shell.touch("utilities.js");
     shell.touch("view.js");
     shell.touch("config.json");
-    
+
     fs.writeFileSync("./error.js", defaultErrorConfig);
     fs.writeFileSync("./routes.js", defaultRoutesConfig);
     fs.writeFileSync("./utilities.js", defaultUtilitiesConfig);
-    fs.writeFileSync("./view.js",  defaultViewConfig.replace('{{!--view_engine--}}', viewEngine));
-    
+    fs.writeFileSync("./view.js", defaultViewConfig.replace('{{!--view_engine--}}', viewEngine));
+
     shell.cd("..");
     shell.cd(CONTROLLERS_DIR);
     shell.touch("index.js");
     fs.writeFileSync("./index.js", defaultControllerTemplate);
-    
+
     shell.cd("../routes");
     shell.rm("users.js");
     fs.writeFileSync("./index.js", defaultRoutesTemplate);
-    // cssEngine = answers.cssEngine;
-    // return inquirer.prompt([{
-      //   type: 'list',
-      //   name: 'cssEngine',
-      //   message: 'Which css engine you want to use ? (Leave empty if you want to use plain css)',
-      //   default : '',
-      //   choices: ['less', 'stylus', 'compass', 'sass']
-      // }])
-    })
-    
-  
+  })
 });
 
-program.command("db:migrate")
+program
+  .command("db:migrate", "Run migrations for database")
   .action(() => {
     let command = SEQUELIZE_CLI + " db:migrate";
     shell.exec(command);
   })
 
 program
-  .command("generate [tool] <toolName> [toolActions...]")
+  .command("generate <tool> <toolName> [toolActions...]", "")
   .action((tool, toolName, toolActions) => {
-    if(!checkInsideProject()) {
+    if (!checkInsideProject()) {
       console.error("Error: You are not in a valid express-generate project");
       return;
     };
@@ -104,7 +96,7 @@ program
     switch (tool) {
       case "controller":
         shell.config.silent = true;
-        if(checkControllerExist(toolName)) {
+        if (checkControllerExist(toolName)) {
           console.error("Error: Controller " + toolName + " already exists.");
           return;
         }
@@ -116,7 +108,7 @@ program
       case "model":
         let command = SEQUELIZE_CLI + " model:generate --name " + toolName + " --attributes ";
         toolActions.forEach((attribute, index, array) => {
-          if(array.length - 1 == index) {
+          if (array.length - 1 == index) {
             command += attribute;
             return;
           }
@@ -127,26 +119,24 @@ program
     }
   });
 
-
-
 function checkInsideProject() {
   let checkRootValid = shell.test("-e", "bin") &&
-  shell.test("-e", "config") &&
-  shell.test("-e", "controllers") &&
-  shell.test("-e", "node_modules") &&
-  shell.test("-e", "routes") &&
-  shell.test("-e", "views") &&
-  shell.test("-e", "app.js") &&
-  shell.test("-e", "package-lock.json") &&
-  shell.test("-e", "package.json");
+    shell.test("-e", "config") &&
+    shell.test("-e", "controllers") &&
+    shell.test("-e", "node_modules") &&
+    shell.test("-e", "routes") &&
+    shell.test("-e", "views") &&
+    shell.test("-e", "app.js") &&
+    shell.test("-e", "package-lock.json") &&
+    shell.test("-e", "package.json");
 
   shell.cd(CONFIG_DIR);
 
   let isInsideProject = checkRootValid &&
-  shell.test("-e", "error.js") &&
-  shell.test("-e", "routes.js") &&
-  shell.test("-e", "utilities.js") &&
-  shell.test("-e", "view.js");
+    shell.test("-e", "error.js") &&
+    shell.test("-e", "routes.js") &&
+    shell.test("-e", "utilities.js") &&
+    shell.test("-e", "view.js");
 
   shell.cd("..");
   return isInsideProject;
@@ -156,7 +146,7 @@ function checkControllerExist(toolName) {
   let fileName = toolName + ".js";
 
   shell.cd(CONTROLLERS_DIR);
-  if(shell.test("-e", fileName)) {
+  if (shell.test("-e", fileName)) {
     return true;
   }
 
@@ -164,13 +154,13 @@ function checkControllerExist(toolName) {
   shell.cd(CONFIG_DIR);
   let configContent = fs.readFileSync('routes.js').toString();
   let regex = new RegExp("app.use('/" + toolName + "')");
-  if(configContent.match(regex)) {
+  if (configContent.match(regex)) {
     return true;
   }
 
   shell.cd('..');
   shell.cd(ROUTES_DIR);
-  if(shell.test("-e", fileName)) {
+  if (shell.test("-e", fileName)) {
     return true
   }
   shell.cd('..');
@@ -212,7 +202,7 @@ function modifyRoutesFolder(tool, toolName, toolActions) {
 }
 
 
-function modifyConfigFolder(tool, toolName, toolActions)  {
+function modifyConfigFolder(tool, toolName, toolActions) {
   shell.cd("../config");
   let content = fs.readFileSync("routes.js").toString();
   let routerVarName = toolName + "Router";
@@ -253,7 +243,7 @@ function modifyControllerFolder(tool, toolName, toolActions) {
   shell.cd(CONTROLLERS_DIR);
   let fileName = toolName + ".js";
 
-  if(shell.test("-e", fileName)) {
+  if (shell.test("-e", fileName)) {
     return true;
   }
 
@@ -274,5 +264,32 @@ function modifyControllerFolder(tool, toolName, toolActions) {
     fs.writeFileSync(fileName, data.toString() + content);
   });
 }
+
+program.on('command:*', function () {
+  term.red('Invalid command: %s\nSee --help for a list of available commands.', program.args.join(' '));
+  process.exit(1);
+});
+
+program.on('--help', () => {
+  console.log('');
+  term.bold.underline('express-generate CLI');
+  console.log('');
+  console.log('');
+  term.brightBlue('Commands:');
+  console.log('');
+  term('  express-generate new <Project Name>                                   Create a new express-generate project');
+  console.log('');
+  term('  express-generate generate controller <Controller Name> [Actions...]   Create a new controller with the defined actions');
+  console.log('');
+  term('  express-generate generate model <field-name>:<data-type>              Create a new model with the predefined fields');
+  console.log('');
+  term('  express-generate db:migrate                                           Running migrations for database');
+  console.log('');
+  console.log('');
+  term.brightYellow.bold('Disclaimer: We use Sequelize CLI behind the scene to support ORM. If you want to use Sequelize CLI instead of using ours CLI, you are welcome to do so.');
+  console.log('');
+  term.brightYellow.bold('Type "sequelize --help" to get more information');
+  console.log('');
+})
 
 program.parse(process.argv);

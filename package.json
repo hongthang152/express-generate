@@ -6,7 +6,7 @@
     "commander": "^2.19.0",
     "inquirer": "^6.2.2",
     "shelljs": "^0.8.3",
-    "terminal-kit": "^1.26.11"
+    "terminal-kit": "^1.27.0"
   },
   "main": "src/main.js",
   "preferGlobal": true,
