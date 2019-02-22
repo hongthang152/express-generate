@@ -58,9 +58,13 @@ $ npm start
 ```
 This should generate User.js under ./controller and ./routes folders. 
 2) Go to your browser. Try:
+
 [localhost:3000/User](localhost:3000/User)
+
 [localhost:3000/User/getUser](localhost:3000/User/getUser)
+
 [localhost:3000/User/postUser](localhost:3000/User/postUser)
+
 Your URL enpoint should be there.
 ---
 Create simple User model with 2 fields: username, password
@@ -70,7 +74,10 @@ $ express-generate generate model User username:string password:string
 $ express-generate db:migrate
 ```
 This should generate User.js under ./model folder.
-2) To use User model, your javascript code must require the index.js file in the model folder. We use it to import the model. For example.
+
+2) To use User model, your javascript code must require the index.js file in the model folder. 
+
+We use it to import the model. For example.
 ```javascript
 var db = require('../models/index');
 var User = db.sequelize.import('../models/user.js');
@@ -90,6 +97,7 @@ var User = db.sequelize.import('../models/user.js');
 // });
 
 Disclaimer: We use Sequelize CLI behind the scene to support ORM. If you want to use Sequelize CLI instead of using ours CLI, you are welcome to do so.
+
 Type "sequelize --help" to get more information
 ```
 
