@@ -56,7 +56,8 @@ Create a simple User controller with 2 nested action: getUser and postUser
 $ express-generate generate controller User getUser postUser
 $ npm start
 ```
-This should generate User.js under ./controller and ./routes folders. 
+This should generate User.js under ./controller and ./routes folders.
+
 2) Go to your browser. Try:
 
 [localhost:3000/User](localhost:3000/User)
@@ -78,6 +79,7 @@ This should generate User.js under ./model folder.
 2) To use User model, your javascript code must require the index.js file in the model folder. 
 
 We use it to import the model. For example.
+
 ```javascript
 var db = require('../models/index');
 var User = db.sequelize.import('../models/user.js');
@@ -95,6 +97,7 @@ var User = db.sequelize.import('../models/user.js');
 //         password: 'Doe'
 //     }
 // });
+```
 
 Disclaimer: We use Sequelize CLI behind the scene to support ORM. If you want to use Sequelize CLI instead of using ours CLI, you are welcome to do so.
 
