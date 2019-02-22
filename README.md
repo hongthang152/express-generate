@@ -35,8 +35,8 @@ Commands:
   express-generate generate model <field-name>:<data-type>               Create a new model with the predefined fields
   express-generate db:migrate                                            Running migrations for database
 Options:
-  --version  Show version number                                         [boolean]
-  --help     Show help                                                   [boolean]
+  --version  Show version number                                         
+  --help     Show help                                                   
 ```
 ## Example
 Create a simple project and run it
