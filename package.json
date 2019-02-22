@@ -21,8 +21,15 @@
     "webpack-cli": "^3.2.1",
     "webpack-node-externals": "^1.7.2"
   },
-  "keywords": [],
+  "keywords": [
+    "express",
+    "express-generator",
+    "express-generate",
+    "sqlite",
+    "cli",
+    "automation"
+  ],
   "author": "Thang Nguyen <nguyenhongthang1998@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "description": "An Express project generator with command-line interface that is easy to use"
 }
