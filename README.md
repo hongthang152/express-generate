@@ -17,6 +17,7 @@ Your Express project will be ready within 1 minute of installing. You will have 
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
+- [Examples](#Examples)
 
 ## Installation
 Install CLI
@@ -34,6 +35,63 @@ Commands:
   express-generate generate model <field-name>:<data-type>               Create a new model with the predefined fields
   express-generate db:migrate                                            Running migrations for database
 Options:
-  --version  Show version number                                         
-  --help     Show help                                                   
+  --version  Show version number                                         [boolean]
+  --help     Show help                                                   [boolean]
 ```
+## Example
+Create a simple project and run it
+1) Creating a project named Test
+```bash
+$ express-generate new Test
+```
+2) Start Express server
+```bash
+$ cd Test
+$ npm start
+```
+---
+Create a simple User controller with 2 nested action: getUser and postUser
+1) Inside the project folder, type:
+```bash
+$ express-generate generate controller User getUser postUser
+$ npm start
+```
+This should generate User.js under ./controller and ./routes folders. 
+2) Go to your browser. Try:
+[localhost:3000/User](localhost:3000/User)
+[localhost:3000/User/getUser](localhost:3000/User/getUser)
+[localhost:3000/User/postUser](localhost:3000/User/postUser)
+Your URL enpoint should be there.
+---
+Create simple User model with 2 fields: username, password
+1) Inside the project folder, type:
+```bash
+$ express-generate generate model User username:string password:string
+$ express-generate db:migrate
+```
+This should generate User.js under ./model folder.
+2) To use User model, your javascript code must require the index.js file in the model folder. We use it to import the model. For example.
+```javascript
+var db = require('../models/index');
+var User = db.sequelize.import('../models/user.js');
+
+// -- Inserting User into database
+//User.create({
+//    username: 'John',
+//    password: 'Doe'
+//})
+
+// -- Find all users having the condition
+// User.findAll({
+//     where: {
+//         username: 'John',
+//         password: 'Doe'
+//     }
+// });
+
+Disclaimer: We use Sequelize CLI behind the scene to support ORM. If you want to use Sequelize CLI instead of using ours CLI, you are welcome to do so.
+Type "sequelize --help" to get more information
+```
+
+
+
