@@ -4,7 +4,7 @@
 
 An Express project generator with Rails like command-line interface that is easy to use. To get started: 
 ```bash
-$ npm install express-generate
+$ npm install express-generate -g
 $ express-generate new <project-name>
 $ *waiting intensifies*
 $ cd <project-name>
@@ -22,7 +22,7 @@ Your Express project will be ready within 1 minute of installing. You will have 
 ## Installation
 Install CLI
 ```bash
-$ npm install express-generate
+$ npm install express-generate -g
 ```
 
 ## Usage
